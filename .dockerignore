@@ -1,0 +1,11 @@
+node_modules
+dist
+.git
+.gitignore
+.claude
+server/data.db*
+server/test.mjs
+*.md
+Dockerfile
+.dockerignore
+fly.toml

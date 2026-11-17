@@ -1,0 +1,30 @@
+{
+  "name": "enfermagem-fcmscsp",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "server": "node --no-warnings server/index.js",
+    "build": "vite build",
+    "start": "vite build && node --no-warnings server/index.js",
+    "test": "node --no-warnings server/test.mjs && node --no-warnings server/test.mjs --libsql",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.18.0",
+    "lucide-react": "^0.460.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "vite": "^5.4.11"
+  },
+  "engines": {
+    "node": "22.x"
+  }
+}
