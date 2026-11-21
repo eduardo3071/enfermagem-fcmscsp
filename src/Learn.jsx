@@ -14,7 +14,7 @@ function Accordion({ emoji, title, items, defaultOpen = false }) {
       </button>
       {open && (
         <ul className="px-4 pb-4 space-y-2">
-          {items.map((t, i) => <li key={i} className="text-sm text-slate-600 flex gap-2"><span className="text-emerald-500">•</span><span>{t}</span></li>)}
+          {items.map((t, i) => <li key={i} className="text-sm text-slate-600 flex gap-2"><span aria-hidden="true" className="text-emerald-600">•</span><span>{t}</span></li>)}
         </ul>
       )}
     </div>
@@ -28,7 +28,7 @@ function Table({ rows, head }) {
       <tbody>
         {rows.map(r => (
           <tr key={r[0]} className="border-t border-slate-100">
-            <td className="py-1.5 font-semibold text-emerald-700">{r[0]}</td>
+            <td className="py-1.5 font-semibold text-emerald-600">{r[0]}</td>
             {r.slice(1).map((c, i) => <td key={i} className="py-1.5 text-slate-600">{c}</td>)}
           </tr>
         ))}
@@ -41,9 +41,9 @@ export function Learn({ onBack }) {
   const K = KDIGO
   return (
     <div className="space-y-4">
-      <button onClick={onBack} className="flex items-center gap-1 text-sm text-slate-500"><ArrowLeft className="w-4 h-4" /> Voltar</button>
+      <button onClick={onBack} className="flex items-center gap-1 text-sm text-slate-500 min-h-11 -my-2 pr-3"><ArrowLeft className="w-4 h-4" /> Voltar</button>
       <Card>
-        <p className="text-xs font-medium text-sky-600">KDIGO 2024</p>
+        <p className="text-xs font-medium text-sky-700">KDIGO 2024</p>
         <h1 className="font-semibold text-slate-900">Doença Renal Crônica</h1>
         <p className="text-sm text-slate-600 mt-1">{K.intro}</p>
       </Card>
@@ -70,11 +70,11 @@ export function Learn({ onBack }) {
       {K.pilares.map(p => (
         <div key={p.n} className="bg-white rounded-xl border border-slate-200 p-4">
           <div className="flex items-center gap-3 mb-2">
-            <span className="w-7 h-7 rounded-full bg-sky-500 text-white text-sm font-bold flex items-center justify-center">{p.n}</span>
+            <span className="w-7 h-7 rounded-full bg-sky-700 text-white text-sm font-bold flex items-center justify-center">{p.n}</span>
             <div><p className="text-sm font-semibold text-slate-800">{p.t}</p><p className="text-xs text-slate-500">{p.sub}</p></div>
           </div>
           <ul className="space-y-1.5">
-            {p.items.map((t, i) => <li key={i} className="text-sm text-slate-600 flex gap-2"><span className="text-sky-500">•</span><span>{t}</span></li>)}
+            {p.items.map((t, i) => <li key={i} className="text-sm text-slate-600 flex gap-2"><span aria-hidden="true" className="text-sky-700">•</span><span>{t}</span></li>)}
           </ul>
         </div>
       ))}

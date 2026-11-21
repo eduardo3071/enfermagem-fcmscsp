@@ -5,6 +5,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 COPY index.html vite.config.js postcss.config.js tailwind.config.js ./
 COPY public ./public
+COPY shared ./shared
 COPY src ./src
 RUN npm run build
 
@@ -16,6 +17,7 @@ ENV NODE_ENV=production \
     TRUST_PROXY=1
 WORKDIR /app
 COPY package.json ./
+COPY shared ./shared
 COPY server ./server
 COPY --from=build /app/dist ./dist
 # /data é o volume persistente do SQLite; o usuário "node" precisa poder escrever nele

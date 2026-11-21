@@ -6,26 +6,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-const SCHEMA = `
-  CREATE TABLE IF NOT EXISTS groups (
-    id TEXT PRIMARY KEY, code TEXT UNIQUE NOT NULL, name TEXT NOT NULL, icon TEXT NOT NULL,
-    start TEXT NOT NULL, season INTEGER NOT NULL DEFAULT 1
-  );
-  CREATE TABLE IF NOT EXISTS members (
-    id TEXT PRIMARY KEY, group_id TEXT NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
-    name TEXT NOT NULL, avatar TEXT NOT NULL, token_hash TEXT UNIQUE NOT NULL,
-    owner INTEGER NOT NULL DEFAULT 0, share INTEGER NOT NULL DEFAULT 1,
-    streak INTEGER NOT NULL DEFAULT 0, best INTEGER NOT NULL DEFAULT 0
-  );
-  CREATE TABLE IF NOT EXISTS days (
-    member_id TEXT NOT NULL REFERENCES members(id) ON DELETE CASCADE, season INTEGER NOT NULL, date TEXT NOT NULL,
-    pts INTEGER NOT NULL, water INTEGER NOT NULL, activity INTEGER NOT NULL, sleep REAL NOT NULL,
-    PRIMARY KEY (member_id, season, date)
-  );
-  CREATE INDEX IF NOT EXISTS idx_members_group ON members(group_id);
-  CREATE INDEX IF NOT EXISTS idx_days_season ON days(season, member_id);
-`
-
 async function openLocal(dbPath) {
   const { DatabaseSync } = await import('node:sqlite')
   if (dbPath !== ':memory:') fs.mkdirSync(path.dirname(path.resolve(dbPath)), { recursive: true })
@@ -63,8 +43,71 @@ async function openLibsql({ url, authToken }) {
   }
 }
 
+/* ---------- migrações ----------
+   Regras: nunca edite uma migração já publicada; para mudar o esquema, acrescente uma nova no fim.
+   Cada instrução roda uma vez; "duplicate column"/"already exists" são tolerados para que duas
+   instâncias subindo ao mesmo tempo (Vercel) não derrubem uma à outra. */
+const MIGRATIONS = [
+  {
+    version: 1, // esquema original
+    stmts: [
+      `CREATE TABLE IF NOT EXISTS groups (
+        id TEXT PRIMARY KEY, code TEXT UNIQUE NOT NULL, name TEXT NOT NULL, icon TEXT NOT NULL,
+        start TEXT NOT NULL, season INTEGER NOT NULL DEFAULT 1
+      )`,
+      `CREATE TABLE IF NOT EXISTS members (
+        id TEXT PRIMARY KEY, group_id TEXT NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+        name TEXT NOT NULL, avatar TEXT NOT NULL, token_hash TEXT UNIQUE NOT NULL,
+        owner INTEGER NOT NULL DEFAULT 0, share INTEGER NOT NULL DEFAULT 1,
+        streak INTEGER NOT NULL DEFAULT 0, best INTEGER NOT NULL DEFAULT 0
+      )`,
+      `CREATE TABLE IF NOT EXISTS days (
+        member_id TEXT NOT NULL REFERENCES members(id) ON DELETE CASCADE, season INTEGER NOT NULL, date TEXT NOT NULL,
+        pts INTEGER NOT NULL, water INTEGER NOT NULL, activity INTEGER NOT NULL, sleep REAL NOT NULL,
+        PRIMARY KEY (member_id, season, date)
+      )`,
+      'CREATE INDEX IF NOT EXISTS idx_members_group ON members(group_id)',
+      'CREATE INDEX IF NOT EXISTS idx_days_season ON days(season, member_id)',
+    ],
+  },
+  {
+    version: 2, // PIN de recuperação, metas e registros brutos (pontos passam a ser calculados no servidor), limite persistente
+    stmts: [
+      'ALTER TABLE members ADD COLUMN pin_hash TEXT',
+      'ALTER TABLE members ADD COLUMN failed_pin INTEGER NOT NULL DEFAULT 0',
+      'ALTER TABLE members ADD COLUMN locked_until INTEGER NOT NULL DEFAULT 0',
+      'ALTER TABLE members ADD COLUMN water_goal INTEGER NOT NULL DEFAULT 2250',
+      'ALTER TABLE members ADD COLUMN sleep_goal REAL NOT NULL DEFAULT 7.5',
+      "ALTER TABLE members ADD COLUMN saved TEXT NOT NULL DEFAULT '[]'",
+      'ALTER TABLE days ADD COLUMN food INTEGER NOT NULL DEFAULT 0',
+      'ALTER TABLE days ADD COLUMN weight INTEGER NOT NULL DEFAULT 0',
+      'ALTER TABLE days ADD COLUMN mood INTEGER NOT NULL DEFAULT 0',
+      'CREATE TABLE IF NOT EXISTS rate_limits (key TEXT PRIMARY KEY, n INTEGER NOT NULL, reset INTEGER NOT NULL)',
+    ],
+  },
+]
+
+export const LATEST_SCHEMA_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version
+const TOLERATED = /duplicate column|already exists/i
+
+async function migrate(db) {
+  await db.run('CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL)')
+  let current = (await db.get('SELECT MAX(version) AS v FROM schema_migrations'))?.v ?? 0
+  if (current === 0 && (await db.get("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'groups'"))) {
+    // banco criado antes do controle de versão: já tem o esquema da v1
+    await db.run('INSERT OR IGNORE INTO schema_migrations (version, applied_at) VALUES (1, ?)', [new Date().toISOString()])
+    current = 1
+  }
+  for (const m of MIGRATIONS.filter(x => x.version > current)) {
+    for (const sql of m.stmts) {
+      try { await db.run(sql) } catch (e) { if (!TOLERATED.test(String(e?.message))) throw e }
+    }
+    await db.run('INSERT OR IGNORE INTO schema_migrations (version, applied_at) VALUES (?, ?)', [m.version, new Date().toISOString()])
+  }
+}
+
 export async function openDb({ url, authToken, dbPath = ':memory:' } = {}) {
   const db = url ? await openLibsql({ url, authToken }) : await openLocal(dbPath)
-  await db.exec(SCHEMA)
+  await migrate(db)
   return db
 }

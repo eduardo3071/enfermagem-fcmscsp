@@ -46,6 +46,23 @@ export const ACHIEVEMENTS = [
 
 export const DISCLAIMER = 'App de acompanhamento e gamificação. Não substitui orientação médica, nutricional ou de educação física.'
 
+/* ---------- privacidade ---------- */
+export const PRIVACY_VERSION = '2026-11'
+// Preencha com o e-mail do responsável pelo app (aparece na Política de Privacidade). Vazio = o texto
+// orienta a procurar o administrador do grupo.
+export const PRIVACY_CONTACT = ''
+
+/* ---------- sugestões de metas ---------- */
+// ~35 ml de água por kg de peso, +250 ml para quem treina forte; arredondado de 250 em 250 ml.
+export function suggestWater(weightKg, activity) {
+  const base = (Number(weightKg) || 70) * 35 + (activity === 'Intenso' ? 500 : activity === 'Moderado' ? 250 : 0)
+  return Math.min(4000, Math.max(1000, Math.round(base / 250) * 250))
+}
+export const suggestSleep = (age) => (Number(age) < 18 ? 9 : Number(age) >= 65 ? 7.5 : 8)
+
+// Qual objetivo do onboarding corresponde a cada tarefa (para destacar o "foco" da pessoa).
+export const OBJECTIVE_OF_TASK = { food: 'food', water: 'water', activity: 'exercise', sleep: 'sleep', weight: 'weight', mood: 'wellbeing' }
+
 export function bmi(weight, heightCm) {
   const h = heightCm / 100
   if (!weight || !h) return null

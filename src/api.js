@@ -1,4 +1,6 @@
-// Cliente da API. Só nome, avatar, pontos e sequência são enviados; peso e IMC ficam no aparelho.
+// Cliente da API. Só nome, avatar, registros do dia e sequência são enviados; peso e IMC ficam no aparelho.
+// Os endpoints do grupo usam o apelido "me" (o grupo de quem está logado): assim o app continua
+// funcionando quando o administrador troca o código de convite.
 async function call(method, path, body, token) {
   let res
   try {
@@ -18,9 +20,15 @@ async function call(method, path, body, token) {
 export const api = {
   createGroup: (b) => call('POST', '/groups', b),
   joinGroup: (b) => call('POST', '/groups/join', b),
-  ranking: (code, token) => call('GET', `/groups/${encodeURIComponent(code)}/ranking`, null, token),
-  newCode: (code, token) => call('POST', `/groups/${encodeURIComponent(code)}/code`, {}, token),
-  newSeason: (code, token, today) => call('POST', `/groups/${encodeURIComponent(code)}/season`, { today }, token),
+  recover: (b) => call('POST', '/recover', b),
+  ranking: (token) => call('GET', '/groups/me/ranking', null, token),
+  members: (token) => call('GET', '/groups/me/members', null, token),
+  newCode: (token) => call('POST', '/groups/me/code', {}, token),
+  newSeason: (token, today) => call('POST', '/groups/me/season', { today }, token),
+  transferOwner: (token, memberId) => call('POST', '/groups/me/owner', { memberId }, token),
+  kick: (token, memberId) => call('DELETE', `/groups/me/members/${encodeURIComponent(memberId)}`, null, token),
+  deleteGroup: (token) => call('DELETE', '/groups/me', null, token),
   sync: (payload, token) => call('PUT', '/sync', payload, token),
+  setPin: (pin, token) => call('PUT', '/me/pin', { pin }, token),
   deleteMe: (token) => call('DELETE', '/me', null, token),
 }

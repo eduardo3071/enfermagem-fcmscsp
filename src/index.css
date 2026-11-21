@@ -4,7 +4,10 @@
 
 body { @apply bg-slate-50 text-slate-800 min-h-screen; font-family: ui-sans-serif, system-ui, sans-serif; }
 
-/* Modo escuro: sobrescreve as utilidades claras mais usadas */
+/* Modo escuro: sobrescreve as utilidades claras mais usadas.
+   Só mexe em cores de TEXTO que ficam sobre superfícies que também escurecem aqui; etiquetas com fundo claro
+   próprio (ex.: bg-emerald-100 text-emerald-700, bg-amber-100 text-amber-700) continuam como estão.
+   Confira com a auditoria de contraste (>= 4,5:1) sempre que mexer. */
 .dark body { background: #0f172a; color: #e2e8f0; }
 .dark .bg-white { background-color: #1e293b; }
 .dark .bg-slate-50 { background-color: #0f172a; }
@@ -13,7 +16,16 @@ body { @apply bg-slate-50 text-slate-800 min-h-screen; font-family: ui-sans-seri
 .dark .text-slate-900, .dark .text-slate-800, .dark .text-slate-700 { color: #f1f5f9; }
 .dark .text-slate-600 { color: #cbd5e1; }
 .dark .text-slate-500, .dark .text-slate-400 { color: #94a3b8; }
-.dark .bg-emerald-50 { background-color: #064e3b; }
+.dark .text-emerald-600 { color: #34d399; }
+.dark .text-sky-700 { color: #7dd3fc; }
+.dark .text-rose-600 { color: #fda4af; }
+.dark .text-amber-900, .dark .text-amber-800 { color: #fde68a; }
+.dark .text-amber-700 { color: #fcd34d; }
+.dark .bg-amber-100 { background-color: #78350f; }
+.dark .bg-emerald-50 { background-color: #022c22; }
 .dark .bg-sky-50, .dark .bg-sky-100 { background-color: #0c4a6e; }
 .dark .bg-rose-50 { background-color: #4c0519; }
+.dark .bg-amber-50 { background-color: #451a03; }
+.dark .border-amber-200 { border-color: #92400e; }
+.dark .border-emerald-200 { border-color: #065f46; }
 .dark input, .dark select { color: #f1f5f9; }
